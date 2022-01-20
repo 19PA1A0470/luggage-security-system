@@ -1,0 +1,59 @@
+#include <SoftwareSerial.h>
+#include <TinyGPS++.h>
+static const int RXPin = 4, TXPin = 3;
+static const uint32_t GPSBaud = 9600;
+TinyGPSPlus gps;
+SoftwareSerial GPS(RXPin, TXPin);
+SoftwareSerial SIM900(7, 8);
+String textForSMS;
+int ENTERstate = 0;
+int ENTER = 2;
+
+String f1001 = "+917989833691";
+
+void setup() {
+  pinMode(ENTER, INPUT);
+  Serial.begin(9600);
+      SIM900.begin(9600);
+      GPS.begin(GPSBaud);
+  Serial.println(" logging time completed!");
+  delay(5000);    
+
+}
+
+void loop() {
+  ENTERstate = digitalRead(ENTER);
+       if(ENTERstate == HIGH)
+      {
+      if (GPS.available() > 0)
+      {
+      gps.encode(GPS.read());
+      if (gps.location.isUpdated())
+      {
+      Serial.println("Latitude= ");
+      Serial.println(gps.location.lat(), 6);
+      Serial.println(" Longitude= ");
+      Serial.println(gps.location.lng(), 6);    
+     {
+     String mnumber = "AT + CMGS = \""+f1001+"\"";
+        SIM900.print("AT+CMGF=1\r");
+       delay(1000);
+      SIM900.println(mnumber);
+
+       delay(1000);
+       SIM900.println("LUGGAGE WAS STOLEN                  ");
+       delay(1000);
+       SIM900.println("#UPDATED LOCATION                                         ");
+       delay(1000);
+       SIM900.println("https://www.google.com/maps/place/" +String(gps.location.lat(), 6)+"," +String(gps.location.lng(), 6));
+       delay(1000);
+       SIM900.println((char)26);
+       delay(100);
+       SIM900.println();
+       delay(30000);
+       //
+      }
+      }
+      }
+      } 
+    }
